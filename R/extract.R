@@ -3,10 +3,10 @@ sequenza.extract <- function(file, window = 1e6, overlap = 1,
     mufreq.treshold = 0.10, min.reads = 40, min.reads.normal = 10,
     min.reads.baf = 1, max.mut.types = 1, min.type.freq = 0.9,
     min.fw.freq = 0, verbose = TRUE, chromosome.list = NULL,
-    breaks = NULL, breaks.method = "het", assembly = "hg19",
+    breaks = NULL, breaks.method = "het", assembly = "hg38",
     weighted.mean = TRUE, normalization.method = "mean",
     ignore.normal = FALSE, parallel = 1, gc.stats = NULL,
-    segments.samples = FALSE){
+    segments.samples = FALSE) {
 
     if (is.null(gc.stats)) {
         gc.stats <- gc.sample.stats(file, verbose = verbose,
@@ -27,6 +27,7 @@ sequenza.extract <- function(file, window = 1e6, overlap = 1,
         avg_nor_depth <- weighted.median(x = gc.stats$normal$depth,
             w = colSums(gc.stats$normal$n))
     }
+
     windows.baf   <- list()
     windows.ratio <- list()
     windows.raw_ratio <- list()
@@ -38,6 +39,7 @@ sequenza.extract <- function(file, window = 1e6, overlap = 1,
     segments.list <- list()
     segments_samples.list <- list()
     norm.gc.list <- list()
+
     if (is.null(dim(breaks))) {
         breaks <- NULL
     }
@@ -47,16 +49,17 @@ sequenza.extract <- function(file, window = 1e6, overlap = 1,
     } else {
         chromosome.list <- chromosome.list[chromosome.list %in% chr.vect]
     }
+
     for (chr in chromosome.list) {
         if (verbose) {
             message("Processing ", chr, ":", appendLF = TRUE)
         }
         tbi <- file.exists(paste0(file, ".tbi"))
         if (tbi) {
-            seqz.data   <- read.seqz(file, chr_name = chr)
+            seqz.data <- read.seqz(file, chr_name = chr)
         } else {
             file.lines <- gc.stats$file.metrics[which(chr.vect == chr), ]
-            seqz.data   <- read.seqz(file, n_lines = c(file.lines$start,
+            seqz.data <- read.seqz(file, n_lines = c(file.lines$start,
                 file.lines$end))
         }
 
@@ -77,22 +80,23 @@ sequenza.extract <- function(file, window = 1e6, overlap = 1,
         if (segments.samples == TRUE) {
             breaks_normal_chr <- breaks_full(
                 data = data.frame(chromosome = seqz.data$chromosome,
-                                  position = seqz.data$position,
-                                  adjusted.ratio = norm_normal_depth,
-                                  singsAsFactors = FALSE),
+                    position = seqz.data$position,
+                    adjusted.ratio = norm_normal_depth,
+                    singsAsFactors = FALSE),
                 gamma = gamma.pcf, kmin = kmin.pcf, assembly = assembly,
                 breaks.het = NULL)
             breaks_tumor_chr <- breaks_full(
-               data = data.frame(chromosome = seqz.data$chromosome,
-                                 position = seqz.data$position,
-                                 adjusted.ratio = norm_tumor_depth,
-                                 singsAsFactors = FALSE),
-               gamma = gamma.pcf, kmin = kmin.pcf, assembly = assembly,
-               breaks.het = NULL)
+                data = data.frame(chromosome = seqz.data$chromosome,
+                    position = seqz.data$position,
+                    adjusted.ratio = norm_tumor_depth,
+                    singsAsFactors = FALSE),
+                gamma = gamma.pcf, kmin = kmin.pcf, assembly = assembly,
+                breaks.het = NULL)
         } else {
-           breaks_normal_chr <- NULL
-           breaks_tumor_chr <- NULL
+            breaks_normal_chr <- NULL
+            breaks_tumor_chr <- NULL
         }
+
         seqz.r.win <- windowValues(x = seqz.data$adjusted.ratio,
             positions = seqz.data$position,
             chromosomes = seqz.data$chromosome,
@@ -120,7 +124,6 @@ sequenza.extract <- function(file, window = 1e6, overlap = 1,
             positions = seqz.data$position,
             chromosomes = seqz.data$chromosome,
             window = window, overlap = overlap)
-
 
         seqz.hom <- seqz.data$zygosity.normal == "hom"
         seqz.het <- seqz.data[!seqz.hom, ]
@@ -162,7 +165,7 @@ sequenza.extract <- function(file, window = 1e6, overlap = 1,
             }
         }
         if (class(breaks_chr) == "try-error") {
-           breaks_chr <- NULL
+            breaks_chr <- NULL
         }
         if (is.null(breaks_chr) || nrow(breaks_chr) == 0 ||
             length(breaks_chr) == 0) {
@@ -173,7 +176,7 @@ sequenza.extract <- function(file, window = 1e6, overlap = 1,
         seg.s1 <- segment.breaks(seqz.tab = seqz.data, breaks = breaks_chr,
             min.reads.baf = min.reads.baf, weighted.mean = weighted.mean)
 
-        mut.tab   <- mutation.table(seqz.data,
+        mut.tab <- mutation.table(seqz.data,
             mufreq.treshold = mufreq.treshold,
             min.reads = min.reads, min.reads.normal = min.reads.normal,
             max.mut.types = max.mut.types, min.type.freq = min.type.freq,
@@ -185,7 +188,7 @@ sequenza.extract <- function(file, window = 1e6, overlap = 1,
         windows.tumor[[which(chromosome.list == chr)]] <- seqz.t.win[[1]]
         windows.n_normal[[which(chromosome.list == chr)]] <- seqz.n_n.win[[1]]
         windows.n_tumor[[which(chromosome.list == chr)]] <- seqz.n_t.win[[1]]
-        windows.baf[[which(chromosome.list == chr)]]   <- seqz.b.win[[1]]
+        windows.baf[[which(chromosome.list == chr)]] <- seqz.b.win[[1]]
         segments.list[[which(chromosome.list == chr)]] <- seg.s1
         mutation.list[[which(chromosome.list == chr)]] <- mut.tab
         norm.gc.list[[which(chromosome.list == chr)]] <- norm.gc.stats
@@ -199,7 +202,8 @@ sequenza.extract <- function(file, window = 1e6, overlap = 1,
             message('   ', sum(seqz.hom), ' homozygous positions.', appendLF = TRUE)
         }
     }
-    names(windows.baf)   <- chromosome.list
+
+    names(windows.baf) <- chromosome.list
     names(windows.ratio) <- chromosome.list
     names(windows.raw_ratio) <- chromosome.list
     names(windows.normal) <- chromosome.list
@@ -209,7 +213,6 @@ sequenza.extract <- function(file, window = 1e6, overlap = 1,
     names(mutation.list) <- chromosome.list
     names(segments.list) <- chromosome.list
     names(segments_samples.list) <- chromosome.list
-
 
     gc_norm <- unfold_gc(do.call(rbind, norm.gc.list), stats = FALSE)
 
@@ -233,7 +236,7 @@ sequenza.extract <- function(file, window = 1e6, overlap = 1,
 
     list(BAF = windows.baf, ratio = windows.ratio,
         raw_ratio = windows.raw_ratio,
-        depths =  list(
+        depths = list(
             raw = list(normal = windows.normal, tumor = windows.tumor),
             norm = list(normal = windows.n_normal, tumor = windows.n_tumor)),
         mutations = mutation.list, segments = segments.list,

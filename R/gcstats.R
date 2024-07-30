@@ -13,18 +13,18 @@ gc.sample.stats <- function(file, col_types = "c--dd----d----",
         n_chr <- table(x[, 1])
         gc1 <- lapply(split(x[, 2], x[, 4]), table)
         gc2 <- lapply(split(x[, 3], x[, 4]), table)
-        if (verbose){
+        if (verbose) {
             message(".", appendLF = FALSE)
         }
         list(unique = u_chr, lines = n_chr, gc_nor = gc1, gc_tum = gc2)
     }
-    if (verbose){
+    if (verbose) {
         message("Collecting GC information ", appendLF = FALSE)
     }
     res <- chunk.apply(input = con, FUN = parse_chunck, col_types = col_types,
         CH.MAX.SIZE = buffer, parallel = parallel)
     close(con)
-    if (verbose){
+    if (verbose) {
         message(" done\n")
     }
     unfold_gc(res, stats = TRUE)
@@ -49,7 +49,7 @@ unfold_gc <- function(x, stats = TRUE) {
     }
 }
 
-splash_table <- function(lis_obj){
+splash_table <- function(lis_obj) {
     lis_obj <- Reduce("c", lis_obj)
     split(lis_obj, names(lis_obj))
 }

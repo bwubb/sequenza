@@ -4,8 +4,9 @@ sequenza.fit <- function(sequenza.extract, female = TRUE,
     cellularity = seq(0.1, 1, 0.01), ploidy = seq(1, 7, 0.1),
     ratio.priority = FALSE, method = "baf",
     priors.table = data.frame(CN = 2, value = 2), chromosome.list = 1:24,
-    mc.cores = getOption("mc.cores", 2L)){
+    mc.cores = getOption("mc.cores", 2L)) {
 
+    # Ensure compatibility with hg38 assembly
     if (is.null(chromosome.list)) {
         mut.all <- do.call(rbind, sequenza.extract$mutations)
         mut.all <- na.exclude(mut.all)
@@ -21,7 +22,6 @@ sequenza.fit <- function(sequenza.extract, female = TRUE,
     avg.depth.ratio <- sequenza.extract$avg.depth.ratio
 
     if (method == "baf") {
-
         avg.sd.ratio <- sum(segs.all$sd.ratio * segs.all$N.ratio,
             na.rm = TRUE) / sum(segs.all$N.ratio, na.rm = TRUE)
         avg.sd.Bf <- sum(segs.all$sd.BAF * segs.all$N.BAF, na.rm = TRUE) /
@@ -34,9 +34,9 @@ sequenza.fit <- function(sequenza.extract, female = TRUE,
         segs.filt <- segs.all$N.ratio > N.ratio.filter &
             segs.all$N.BAF > N.BAF.filter
         segs.filt <- segs.len >= segment.filter & segs.filt
-        if (female){
+        if (female) {
             segs.is.xy <- segs.all$chromosome == XY["Y"]
-        } else{
+        } else {
             segs.is.xy <- segs.all$chromosome %in% XY
         }
         filt.test  <- segs.filt & !segs.is.xy
@@ -50,9 +50,9 @@ sequenza.fit <- function(sequenza.extract, female = TRUE,
             mc.cores = mc.cores, ratio.priority = ratio.priority)
     } else if (method == "mufreq") {
         mut.filt <- mut.all$F >= mufreq.treshold
-        if (female){
+        if (female) {
             mut.is.xy  <- mut.all$chromosome == XY["Y"]
-        } else{
+        } else {
             mut.is.xy  <- mut.all$chromosome %in% XY
         }
         filt.test  <- mut.filt & !mut.is.xy
@@ -64,6 +64,6 @@ sequenza.fit <- function(sequenza.extract, female = TRUE,
             avg.depth.ratio = avg.depth.ratio, cellularity = cellularity,
             ploidy = ploidy, priors.table = priors.table, mc.cores = mc.cores)
     } else {
-      stop("The only available methods are \"baf\" and \"mufreq\"")
-   }
+        stop("The only available methods are \"baf\" and \"mufreq\"")
+    }
 }
